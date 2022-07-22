@@ -8,6 +8,9 @@ import (
 	"github.com/google/uuid"
 )
 
+func (u *CosmosDb[E]) Queryf(query string, a ...any) []E {
+	return u.Query(fmt.Sprintf(query, a...))
+}
 func (u *CosmosDb[E]) Query(query string) []E {
 	var docs []E
 	_, err := u.Client.QueryDocuments(u.Db.Coll.Self, documentdb.NewQuery(query), &docs, documentdb.CrossPartition())
