@@ -19,10 +19,10 @@ func New[E any](url, key, database, collection string) CosmosDb[E] {
 
 func newDb[E any](config *DbConfig) (db CosmosDb[E]) {
 	db.Client = documentdb.New(config.Url, documentdb.NewConfig(&config.MasterKey))
-	if err := db.findDatabase("order"); err != nil {
+	if err := db.findDatabase(config.Database); err != nil {
 		panic(err)
 	}
-	if err := db.findCollection("orders"); err != nil {
+	if err := db.findCollection(config.Collection); err != nil {
 		panic(err)
 	}
 	return
