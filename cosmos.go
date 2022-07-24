@@ -1,19 +1,19 @@
 package cosmos
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/a8m/documentdb"
 	"github.com/google/uuid"
 )
 
-func (u *CosmosDb[E]) Queryf(query string, a ...any) []E {
-	return u.Query(fmt.Sprintf(query, a...))
-}
-func (u *CosmosDb[E]) Query(query string) []E {
+func (u *CosmosDb[E]) Query(query string, params ...Param) []E {
+	queryParams := []documentdb.Parameter{}
+	for i := range params {
+		queryParams = append(queryParams, *params[i].toDbParam())
+	}
 	var docs []E
-	_, err := u.Client.QueryDocuments(u.Db.Coll.Self, documentdb.NewQuery(query), &docs, documentdb.CrossPartition())
+	_, err := u.Client.QueryDocuments(u.Db.Coll.Self, documentdb.NewQuery(query, queryParams...), &docs, documentdb.CrossPartition())
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -21,9 +21,12 @@ func (u *CosmosDb[E]) Query(query string) []E {
 }
 
 func (u *CosmosDb[E]) Get(id uuid.UUID) *E {
-	query := fmt.Sprintf("SELECT * FROM c WHERE c.id='%s'", id.String())
+	query := documentdb.NewQuery("select * from c where c.id='@id'", documentdb.Parameter{
+		Name:  "@id",
+		Value: id.String(),
+	})
 	var orders []E
-	_, err := u.Client.QueryDocuments(u.Db.Coll.Self, documentdb.NewQuery(query), &orders, documentdb.CrossPartition())
+	_, err := u.Client.QueryDocuments(u.Db.Coll.Self, query, &orders, documentdb.CrossPartition())
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -42,8 +45,11 @@ func (u *CosmosDb[E]) Upsert(doc *E, partitionKey string) (*documentdb.Response,
 
 func (u *CosmosDb[E]) Delete(id uuid.UUID) (*documentdb.Response, error) {
 	var doc []documentdb.Document
-	query := fmt.Sprintf("SELECT * FROM c WHERE c.id='%s'", id.String())
-	_, err := u.Client.QueryDocuments(u.Coll.Self, documentdb.NewQuery(query), &doc, documentdb.CrossPartition())
+	query := documentdb.NewQuery("select * from c where c.id='@id'", documentdb.Parameter{
+		Name:  "@id",
+		Value: id.String(),
+	})
+	_, err := u.Client.QueryDocuments(u.Coll.Self, query, &doc, documentdb.CrossPartition())
 
 	if err != nil {
 		return nil, err

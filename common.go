@@ -19,6 +19,25 @@ type DbConfig struct {
 	Collection string
 }
 
+type Param struct {
+	Value string
+	Name  string
+}
+
+func NewParam(name, value string) *Param {
+	return &Param{
+		Name:  name,
+		Value: value,
+	}
+}
+
+func (p *Param) toDbParam() *documentdb.Parameter {
+	return &documentdb.Parameter{
+		Name:  p.Name,
+		Value: p.Value,
+	}
+}
+
 func (u *Db) findCollection(name string) (err error) {
 	query := fmt.Sprintf("SELECT * FROM ROOT r WHERE r.id='%s'", name)
 	if colls, err := u.Client.QueryCollections(u.Db.Self, documentdb.NewQuery(query)); err != nil {
