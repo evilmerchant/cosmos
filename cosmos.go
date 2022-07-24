@@ -21,7 +21,7 @@ func (u *CosmosDb[E]) Query(query string, params ...Param) []E {
 }
 
 func (u *CosmosDb[E]) Get(id uuid.UUID) *E {
-	query := documentdb.NewQuery("select * from c where c.id='@id'", documentdb.Parameter{
+	query := documentdb.NewQuery("select * from c where c.id=@id", documentdb.Parameter{
 		Name:  "@id",
 		Value: id.String(),
 	})
@@ -45,7 +45,7 @@ func (u *CosmosDb[E]) Upsert(doc *E, partitionKey string) (*documentdb.Response,
 
 func (u *CosmosDb[E]) Delete(id uuid.UUID) (*documentdb.Response, error) {
 	var doc []documentdb.Document
-	query := documentdb.NewQuery("select * from c where c.id='@id'", documentdb.Parameter{
+	query := documentdb.NewQuery("select * from c where c.id=@id", documentdb.Parameter{
 		Name:  "@id",
 		Value: id.String(),
 	})
